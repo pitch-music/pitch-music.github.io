@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PITCH Sing Along</title>
+<meta name="description" content="PITCHの曲を、流れる歌詞を見ながら一緒に歌えるページ。MVを再生すると、いま歌うところが光ります。">
+<meta property="og:title" content="PITCH Sing Along — 歌詞を見ながら一緒に歌おう">
+<meta property="og:description" content="MVを再生すると、いま歌うところが光ります。まずはアルバム「Monsters」全8曲。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="img/monsters.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0d0b12">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d0b12'/%3E%3Cpath d='M22 44V20h12a8 8 0 0 1 0 16h-6' fill='none' stroke='%23e0344a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0b12; --bg2:#16131d; --line:#2a2533; --ink:#f4f0f7; --muted:#9a92a6; --dim:#5d566a;
+  --accent:#e0344a; --lyric:clamp(22px,5.4vw,34px);
+  --font:"Zen Kaku Gothic New","Hiragino Sans","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+  --display:"Bebas Neue","Futura","Avenir Next Condensed",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{min-height:100dvh}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ---------- 一覧 ---------- */
+#home{max-width:980px;margin:0 auto;padding:28px 16px 56px}
+.brand{font-family:var(--display);letter-spacing:.06em;font-size:15px;color:var(--muted)}
+.hero{display:grid;grid-template-columns:132px 1fr;gap:18px;align-items:center;margin:14px 0 26px}
+.hero img{width:132px;height:132px;border-radius:12px;object-fit:cover;box-shadow:0 10px 40px #e0344a33}
+.hero h1{font-family:var(--display);font-size:clamp(46px,11vw,76px);line-height:.9;letter-spacing:.02em;font-weight:400}
+.hero p{color:var(--muted);font-size:14px;line-height:1.7;margin-top:8px}
+.how{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.7;color:#cfc8d8;margin-bottom:22px}
+.how b{color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{position:relative;display:block;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-2px);border-color:var(--c)}
+.card .th{aspect-ratio:16/9;background:#000 center/cover no-repeat}
+.card .meta{padding:10px 12px 12px;border-top:3px solid var(--c)}
+.card .no{font-family:var(--display);color:var(--c);font-size:15px;letter-spacing:.08em}
+.card .tt{font-family:var(--display);font-size:28px;line-height:1;letter-spacing:.02em}
+.card .hk{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);text-decoration:none;font-size:14px;font-weight:700}
+.pill.main{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+footer{color:var(--dim);font-size:12px;line-height:1.7;margin-top:30px}
+
+/* ---------- 歌う画面 ---------- */
+#sing{display:none;height:100dvh;flex-direction:column}
+body.singing #home{display:none}
+body.singing #sing{display:flex}
+.bar{display:flex;align-items:center;gap:8px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));border-bottom:1px solid var(--line);background:var(--bg)}
+.bar .back{font-size:14px;color:var(--muted);padding:6px 4px;white-space:nowrap}
+.bar .now{flex:1;min-width:0;text-align:center}
+.bar .now .tt{font-family:var(--display);font-size:24px;line-height:1;letter-spacing:.03em;color:var(--accent)}
+.bar .now .hk{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav{display:flex;gap:2px}
+.nav button{width:36px;height:36px;border-radius:8px;font-size:18px;color:var(--muted)}
+.nav button:hover{background:var(--bg2);color:var(--ink)}
+.stage{flex:1;min-height:0;display:flex;flex-direction:column}
+.video{background:#000;flex:none}
+.video .frame{position:relative;aspect-ratio:16/9;max-height:38dvh;margin:0 auto}
+.video .frame>*{position:absolute;inset:0;width:100%;height:100%;border:0}
+.tools{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;padding:6px 10px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.tools .grp{display:flex;align-items:center;gap:2px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:2px}
+.tools button{min-width:30px;height:28px;border-radius:999px;padding:0 8px;font-size:13px}
+.tools button:hover{background:var(--line);color:var(--ink)}
+.tools .val{min-width:44px;text-align:center;color:var(--ink);font-variant-numeric:tabular-nums}
+.tools .lbl{padding:0 4px 0 8px}
+
+.lyrics{position:relative;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:30dvh 18px 45dvh;scroll-behavior:auto;-webkit-mask-image:linear-gradient(transparent,#000 12%,#000 82%,transparent)}
+.ln{font-size:var(--lyric);font-weight:700;line-height:1.45;padding:.28em 0;color:var(--dim);transition:color .25s,transform .25s,opacity .25s;transform-origin:left center;cursor:pointer;max-width:880px;margin:0 auto;position:relative}
+.ln:hover{color:var(--muted)}
+.ln.past{color:#433d4e}
+.ln.next{color:var(--muted)}
+.ln.cur{color:var(--ink);transform:scale(1.04)}
+.ln.cur .tx{background:linear-gradient(90deg,var(--accent) 0,var(--accent) var(--p,0%),var(--ink) var(--p,0%));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 0 18px color-mix(in srgb,var(--accent) 35%,transparent))}
+.ln .cd{display:none;position:absolute;left:0;top:-.15em;font-size:.42em;letter-spacing:.3em;color:var(--accent)}
+.ln.soon .cd{display:block}
+.gap{height:.9em;max-width:880px;margin:0 auto;color:#433d4e;font-size:calc(var(--lyric)*.6)}
+.end{max-width:880px;margin:2em auto 0;color:var(--muted);font-size:15px;line-height:1.8}
+.end a{color:var(--accent);font-weight:700}
+.hint{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:13px;font-weight:700;padding:9px 16px;border-radius:999px;box-shadow:0 8px 30px #0008;opacity:0;pointer-events:none;transition:opacity .3s}
+.hint.show{opacity:1;pointer-events:auto}
+
+@media (min-width:960px){
+  .stage{flex-direction:row}
+  .video{width:48%;display:flex;flex-direction:column;justify-content:center;padding:20px;background:var(--bg);border-right:1px solid var(--line)}
+  .video .frame{width:100%;max-height:none;border-radius:10px;overflow:hidden}
+  .side{flex:1;min-width:0;display:flex;flex-direction:column}
+  .lyrics{padding-left:40px;padding-right:40px}
+}
+@media (max-width:959px){ .side{flex:1;min-height:0;display:flex;flex-direction:column} }
+@media (max-width:520px){
+  .hero{grid-template-columns:92px 1fr;gap:14px}
+  .hero img{width:92px;height:92px}
+  .tools .lbl{display:none}
+}
+@media (prefers-reduced-motion:reduce){ .ln,.card{transition:none} .ln.cur{transform:none} }
+</style>
+</head>
+<body>
+
+<main id="home"></main>
+
+<section id="sing" aria-label="歌詞を見ながら歌う">
+  <div class="bar">
+    <a class="back" href="#">‹ 曲一覧</a>
+    <div class="now"><div class="tt" id="nowTitle"></div><div class="hk" id="nowHook"></div></div>
+    <div class="nav"><button id="prev" aria-label="前の曲">⏮</button><button id="next" aria-label="次の曲">⏭</button></div>
+  </div>
+  <div class="stage">
+    <div class="video"><div class="frame"><div id="player"></div></div></div>
+    <div class="side">
+      <div class="tools">
+        <div class="grp"><span class="lbl">文字</span><button id="fsDown" aria-label="文字を小さく">A−</button><button id="fsUp" aria-label="文字を大きく">A＋</button></div>
+        <div class="grp"><span class="lbl">歌詞のタイミング</span><button id="offDown" aria-label="歌詞を遅らせる">遅く</button><span class="val" id="offVal">±0.0</span><button id="offUp" aria-label="歌詞を早める">早く</button></div>
+      </div>
+      <div class="lyrics" id="lyrics"></div>
+    </div>
+  </div>
+  <button class="hint" id="hint">いま歌うところに戻る</button>
+</section>
+
+<script>
+const ALBUMS = [{"slug":"monsters","title":"Monsters","artist":"PITCH","link":"https://linkco.re/NG57QSxp","full_mv":"gw1MzEB5QDU","tagline":"誰もが心の奥に飼っている「モンスター」を、8つの物語で。","tracks":[{"slug":"vampire","title":"Vampire","yt":"9lduhmC3goQ","hook":"血を捧げても、離れられない","color":"#e0344a","lines":[[10.895,"夜が来るたび 呼ばれてる気がした"],[15.613,"理由もわからず 惹かれていくだけ"],[20.16,"逃げなきゃいけない そう思うのに"],[24.729,"気づけば君の元へ"],[28.845,""],[29.587,"どうしてこんなに 求めてしまうの"],[34.261,"痛みさえ愛おしい、おかしいよね"],[38.948,"理性なんて とっくに壊れてる"],[43.634,"もう戻れないところまで"],[47.37,""],[48.266,"十字架も 祈りの言葉も"],[52.97,"届かないくらい 堕ちていく"],[57.748,"血の代わりに 心を差し出す"],[62.252,"それでもいいと思えるほど"],[66.604,""],[67.241,"Vampire, 骨の髄まで 奪っていいよ"],[71.793,"このまま 二人で堕ちていこう"],[76.431,"Vampire, 依存だとしても これが幸せ"],[80.893,"君になら 全部あげられる"],[85.369,"夜の闇に 溶けていく愛"],[89.367,""],[89.946,"理性?常識?そんなもんいらない"],[93.39,"君に噛まれた 瞬間からもう戻れない"],[95.608,"甘い毒だとしても 止められない"],[97.865,"愛と依存の境界線、消えてしまえばいい"],[100.079,""],[100.243,"Vampire, 骨の髄まで 奪っていいよ"],[104.437,"このまま 二人で堕ちていこう"],[109.087,"Vampire, 依存だとしても これが幸せ"],[113.592,"君になら 全部あげられる"],[118.268,"夜の闇に 溶けていく愛"],[122.599,"このまま朝が来なければいい"],[132.0,"永遠に 二人だけの夜で"],[141.107,""],[143.821,"Vampire, 骨の髄まで 奪っていいよ"],[148.585,"このまま 二人で堕ちていこう"],[153.257,"Vampire, 依存だとしても これが幸せ"],[157.947,"君になら 全部あげられる"],[162.574,"Vampire, どこまでも ついていくよ"],[167.283,"この愛が 消えるまで"],[171.724,"夜の闇に 溶けていく愛"]]},{"slug":"frankenstein","title":"Frankenstein","yt":"PalBj2CiCG0","hook":"本当の怪物は、自分だった","color":"#5fbf6a","lines":[[0.197,"綺麗な言葉で 誰かを繋ぎとめて"],[4.885,"都合のいいとこだけ 集めてきた"],[9.569,"それが愛だと 思い込んでた"],[14.198,"本当は何も 与えてなかった"],[17.422,""],[18.66,"気づいてたはずなのに 見ないふりしてた"],[23.249,"傷つけた分だけ 自分を守ってた"],[28.181,"優しさの仮面 剥がれ落ちる夜"],[32.15,"鏡の中にいたのは"],[36.565,""],[37.502,"継ぎ接ぎだらけの 心を見た"],[41.579,"これが本当の 自分の姿"],[45.962,""],[47.047,"Frankenstein, 醜いのは 顔じゃなくて"],[51.908,"奪うことしか 知らなかった心"],[56.579,"Frankenstein, 誰かの優しさ 縫い合わせて"],[61.35,"生きてきたんだ、そうだろう?"],[63.735,"本当の怪物は ここにいた"],[67.055,""],[67.286,"利用して、利用されて、それが普通だと思ってた"],[70.909,"愛されたいだけなのに、与えることを知らなかった"],[75.487,"壊した分だけ、壊れていく自分に"],[78.614,"今、ようやく気づいたんだ、遅すぎたかもしれないけど"],[84.616,""],[84.915,"Frankenstein, 醜いのは 顔じゃなくて"],[89.592,"奪うことしか 知らなかった心"],[94.276,"Frankenstein, 誰かの優しさ 縫い合わせて"],[98.859,"生きてきたんだ、そうだろう?"],[101.269,"本当の怪物は ここにいた"],[104.655,""],[108.598,"それでも変わりたい、そう思える今なら"],[113.245,"継ぎ接ぎの心にも 本物の欠片がある"],[117.754,""],[119.823,"Frankenstein, 醜いのは 顔じゃなくて"],[124.922,"奪うことしか 知らなかった心"],[129.627,"Frankenstein, 誰かの優しさ 縫い合わせて"],[134.278,"生きてきたんだ、そうだろう?"],[136.495,"Frankenstein, それでも今 変われるなら"],[143.548,"壊した分だけ 繋ぎ直したい"],[148.061,"本当の怪物は ここにいた"]]},{"slug":"werewolf","title":"Werewolf","yt":"xzTg9qdQ5_M","hook":"満月の夜、本当の自分を見せる","color":"#f0a43a","lines":[[15.467,"普段は静かな顔して 街を歩いてる"],[19.637,"誰も気づかない 内側の熱"],[23.139,"抑えて、抑えて、そう生きてきたけど"],[27.014,"君に会うと 制御が効かない"],[30.64,""],[30.876,"満月みたいに 引き寄せられてく"],[34.656,"理性の鎖が 軋んで軋んで"],[38.239,"優しいだけじゃ 隠しきれない"],[42.007,"牙が疼く、この気持ち"],[45.661,""],[45.976,"もう我慢なんて できないんだ"],[49.799,"爆発寸前の 衝動が"],[53.217,""],[53.43,"Werewolf, 普段の顔じゃ 収まりきらない"],[57.038,"君を想うだけで 吠えたくなる"],[60.792,"Werewolf, 変わっていく 自分が怖くて"],[64.569,"それでも止められない"],[68.097,"月の光に 火がついた"],[72.662,""],[76.155,"Fake calm, fake cool、そんなもん脱ぎ捨てて"],[79.954,"本能のまま 突き動かされていく"],[83.277,"コントロールなんて できるわけがない"],[87.006,"これが素の自分、認めるしかない"],[90.623,""],[90.912,"Werewolf, 普段の顔じゃ 収まりきらない"],[94.437,"君を想うだけで 吠えたくなる"],[98.097,"Werewolf, 変わっていく 自分が怖くて"],[101.869,"それでも止められない"],[105.264,"月の光に 火がついた"],[110.137,""],[116.86,"牙を見せても 逃げないでほしい"],[124.006,"これも本当の 俺、私だから"],[132.52,""],[134.211,"Werewolf, 普段の顔じゃ 収まりきらない"],[139.293,"君を想うだけで 吠えたくなる"],[143.14,"Werewolf, 変わっていく 自分が怖くて"],[146.688,"それでも止められない"],[150.286,"Werewolf, ありのままの 姿見せるよ"],[154.081,"これが本当の 俺、私だ"],[157.854,""],[158.112,"月の光に 火がついた"]]},{"slug":"mermaid","title":"Mermaid","yt":"Mps2OwqPHl0","hook":"声を失っても、そばにいたかった","color":"#2fc4c9","lines":[[1.418,"言葉にできない 想いを飲み込んで"],[8.154,"波の下で ただ見つめてた"],[13.907,"届かない場所にいる あなたのために"],[19.577,"この声を 手放してもいい"],[24.218,""],[25.074,"陸に上がった 君はどこか違う"],[30.226,"笑うたび 何かを我慢してるみたい"],[36.192,"気づいてるはずなのに 聞けずにいた"],[41.61,"その瞳の奥に 隠したもの"],[47.197,""],[48.095,"声を失っても 伝えたいことがある"],[54.203,"言葉じゃなくても 届くと信じて"],[60.815,""],[61.063,"Mermaid, 息もできないほど 恋をした"],[65.884,"本当の自分を 差し出してでも"],[72.141,"Mermaid, そばにいたい それだけでよかった"],[77.532,"声がなくても 想いはきっと届く"],[83.638,"波の音に 溶けていく愛"],[90.833,""],[92.337,"声を失って、初めて気づいたこと"],[95.657,"言葉より確かな 想いがあるってこと"],[102.529,"届かなくてもいい、そばにいられるなら"],[106.755,"この痛みさえ 愛おしいと思えた"],[115.159,""],[115.703,"Mermaid, 息もできないほど 恋をした"],[120.737,"本当の自分を 差し出してでも"],[127.172,"Mermaid, そばにいたい それだけでよかった"],[132.356,"声がなくても 想いはきっと届く"],[138.381,"波の音に 溶けていく愛"],[145.197,""],[145.816,"このまま 泡になって消えても"],[152.815,"あなたのそばにいた 証だけでいい"],[163.034,""],[163.466,"Mermaid, 息もできないほど 恋をした"],[169.935,"本当の自分を 差し出してでも"],[176.37,"Mermaid, そばにいたい それだけでよかった"],[181.356,"声がなくても 想いはきっと届く"],[187.646,"Mermaid, どんな姿になっても"],[192.793,"あなたを想う 気持ちは本物"],[199.037,"波の音に 溶けていく愛"]]},{"slug":"doppelganger","title":"Doppelganger","yt":"P_aIq2VnAAg","hook":"見せている私と、本当の私","color":"#a97cf0","lines":[[9.335,"完璧な自分を 演じ続けてる"],[13.894,"弱さなんて 見せられるわけがない"],[18.439,"画面の中の 作り物の笑顔"],[22.566,"それが俺だと 思われてる"],[26.498,""],[27.755,"本当の自分を 見せたら消えてしまう"],[31.56,"そんな気がして ずっと隠してた"],[35.774,"もう一人の自分が 鏡の中にいる"],[40.077,"どっちが本物か わからなくなる"],[43.859,""],[44.295,"剥がれ落ちそうな 仮面の隙間から"],[50.519,"本当の声が 聞こえてくる"],[54.04,""],[58.235,"Doppelganger, 見せてる自分と 本当の自分"],[62.403,"どっちも俺、どっちも私だ"],[66.77,"Doppelganger, もう演じるのは やめにしよう"],[71.149,"君になら 本音で会いたい"],[74.686,"鏡の中で 手を伸ばす"],[79.815,""],[80.118,"Filtered life, fake smile、そんなんもう疲れた"],[82.879,"理想と現実、その隙間で溺れてた"],[88.055,"でも君は言った、「そのままでいいよ」って"],[91.557,"初めて剥がせた、この仮面を"],[97.281,""],[97.526,"Doppelganger, 見せてる自分と 本当の自分"],[101.781,"どっちも俺、どっちも私だ"],[105.9,"Doppelganger, もう演じるのは やめにしよう"],[110.225,"君になら 本音で会いたい"],[114.61,"鏡の中で 手を伸ばす"],[119.056,""],[119.171,"もう一人の自分と 手を取り合って"],[124.927,"これが本当の 俺、私だと言えるように"],[133.85,""],[134.345,"Doppelganger, 見せてる自分と 本当の自分"],[138.745,"どっちも俺、どっちも私だ"],[143.057,"Doppelganger, もう演じるのは やめにしよう"],[147.317,"君になら 本音で会いたい"],[151.078,"Doppelganger, 二つの自分が 一つになる"],[155.801,"これが本当の 俺、私だ"],[160.195,"鏡の中で 手を伸ばす"]]},{"slug":"zombie","title":"Zombie","yt":"816kn9ucj2s","hook":"止まった心が、もう一度動き出す","color":"#a6d93a","lines":[[16.584,"息はしてるのに 生きてる気がしない"],[20.204,"毎日をただ こなしてるだけ"],[23.874,"何かを感じる心も 置いてきたはずだった"],[29.007,"そのはずだったのに"],[31.087,""],[31.277,"君と目が合った 瞬間だけ"],[34.75,"止まってた時間が 動き出す"],[38.382,"忘れてた鼓動 思い出させる"],[42.004,"これは何、この感覚は"],[45.626,""],[45.955,"凍りついてた 心の奥"],[52.624,"溶かしていくのは 君のぬくもり"],[59.44,""],[60.148,"Zombie? Or Alive? 死んだように 生きてきたけど"],[65.573,"君のおかげで また息ができる"],[71.815,"Zombie? Or Alive? 動かなかった 心が今"],[78.057,"君のことを 求めて動き出す"],[82.682,"もう一度、生きていける"],[85.53,""],[86.071,"Zombie? Or Alive?"],[89.511,"Zombie? Or Alive?"],[91.773,"もう迷わない、これが答えだ"],[96.805,""],[96.943,"感情ゼロ、心もゼロ、そう思ってた"],[99.811,"でも君が来て、全部が色づいた"],[103.42,"生き返るって、こういうことなんだな"],[106.655,"止まってた時計が また動き出す"],[110.405,""],[110.692,"Zombie? Or Alive? 死んだように 生きてきたけど"],[115.716,"君のおかげで また息ができる"],[122.108,"Zombie? Or Alive? 動かなかった 心が今"],[128.051,"君のことを 求めて動き出す"],[132.591,"もう一度、生きていける"],[135.874,""],[136.124,"Zombie? Or Alive?"],[139.728,"Zombie? Or Alive?"],[141.692,"もう迷わない、これが答えだ"],[146.727,""],[146.998,"このまま朽ちていくはずだった"],[152.689,"でも今は 明日を見たいと思える"],[161.369,""],[163.137,"Zombie? Or Alive? 死んだように 生きてきたけど"],[168.967,"君のおかげで また息ができる"],[175.328,"Zombie? Or Alive? 動かなかった 心が今"],[181.271,"君のことを 求めて動き出す"]]},{"slug":"ghost","title":"Ghost","yt":"sQIba7YRL6I","hook":"消えないまま、この胸にいる","color":"#9fc3ef","lines":[[17.726,"まだこの部屋に 気配が残ってる"],[24.355,"君が座ってた 椅子も、香りも"],[31.433,"時間が経てば 消えるはずなのに"],[38.734,"なぜだろう、今でも"],[44.941,""],[45.786,"歩き慣れた道に 君の影を探す"],[52.613,"もういないってこと わかってるのに"],[58.354,"ふとした瞬間 呼びそうになる"],[66.693,"名前を、その名前を"],[72.101,""],[73.366,"忘れたいわけじゃない"],[77.26,"ただ、前を向きたいだけなのに"],[86.45,""],[88.12,"Ghost, 消えないまま この胸にいる"],[95.541,"笑い声も、あの日の言葉も"],[102.683,"Ghost, 追いかけても 触れられなくて"],[109.765,"それでもまだ 手放せずにいる"],[116.348,"思い出だけが そばにいる"],[122.861,""],[123.721,"さよならって 言えなかった"],[130.698,"だからずっと 彷徨ってるのかな"],[137.445,""],[141.868,"Ghost, 消えないまま この胸にいる"],[148.404,"笑い声も、あの日の言葉も"],[155.673,"Ghost, 追いかけても 触れられなくて"],[162.781,"それでもまだ 手放せずにいる"],[169.812,"Ghost, いつか本当に さよなら言えたら"],[177.015,"前を向いて 歩いていけるかな"],[183.602,"思い出だけが そばにいる"]]},{"slug":"witch","title":"Witch","yt":"etbfvy1D1kU","hook":"呪いじゃない、これが私の力","color":"#e46bd0","lines":[[16.12,"指をさされて 笑われてきた"],[19.941,"人と違うって それだけの理由で"],[24.064,"隠してきたんだ この力を"],[27.505,"誰にも見せずに、ずっと"],[30.405,""],[30.586,"だけど気づいたんだ、これは呪いじゃない"],[34.528,"恐れられてきたのは 特別だったから"],[38.377,"人と違うことは 弱さじゃなくて"],[41.895,"誰にも真似できない 強さだった"],[45.095,""],[45.288,"杖を振りかざせ、隠す必要はもうない"],[52.472,"これが私、これが俺だ"],[58.727,""],[60.26,"Witch, 恐れられてきた この力こそ"],[67.586,"本当の自分を 生きる武器になる"],[74.887,"Witch, 呪いじゃない、これは祝福だ"],[82.382,"誰と違ってても 胸を張っていい"],[86.456,"魔法みたいに 世界を変えていく"],[90.402,""],[90.57,"普通になろうとして、自分を殺してきた"],[93.985,"でももう終わりだ、仮面なんていらない"],[97.378,"モンスターだって言われても構わない"],[100.801,"それが俺だ、それが私だ、誇りを持って"],[104.676,""],[106.682,"Witch, 恐れられてきた この力こそ"],[113.457,"本当の自分を 生きる武器になる"],[121.238,"Witch, 呪いじゃない、これは祝福だ"],[128.139,"誰と違ってても 胸を張っていい"],[132.195,"魔法みたいに 世界を変えていく"],[136.066,""],[136.268,"ヴァンパイアも、フランケンも、狼男も"],[139.542,"マーメイドも、幽霊も、みんな胸に飼ってる"],[143.264,"それでいいんだ、それが人間だから"],[146.673,"恐れずに、そのまま生きていける"],[151.101,""],[153.787,"Witch, 恐れられてきた この力こそ"],[160.845,"本当の自分を 生きる武器になる"],[168.611,"Witch, 呪いじゃない、これは祝福だ"],[175.247,"誰と違ってても 胸を張っていい"],[182.971,"Witch, 私の中の モンスターごと"],[189.772,"愛していける、そう思えた"],[193.85,"魔法みたいに 世界を変えていく"]]}]}];
+const CHANNEL = "https://www.youtube.com/channel/UC_gP4oK9Qwrv5yguxN4Eqmg";
+const LEAD = 0.18;          // 歌い出しの少し前に光らせる(秒)
+const COUNT_IN = 3;         // 間奏明けのカウント(秒)
+
+const $ = s => document.querySelector(s);
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem("pitch-sing:"+k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem("pitch-sing:"+k,JSON.stringify(v)); }catch(e){} }
+};
+
+// ---------- 一覧 ----------
+function renderHome(){
+  const a = ALBUMS[0];
+  const el = $("#home");
+  el.innerHTML = "";
+  el.insertAdjacentHTML("beforeend", `
+    <div class="brand">PITCH SING ALONG</div>
+    <div class="hero">
+      <img src="img/${a.slug}.jpg" alt="アルバム「${a.title}」のジャケット" width="132" height="132">
+      <div><h1>${a.title}</h1><p>${a.tagline}<br>全${a.tracks.length}曲・歌詞つき</p></div>
+    </div>
+    <div class="how">曲を選んで<b>MVを再生</b>すると、<b>いま歌うところ</b>が光って流れます。行をタップするとそこから再生。歌詞が早い・遅いと感じたら「歌詞のタイミング」で合わせてください。</div>
+    <div class="grid" id="grid"></div>
+    <div class="links">
+      <a class="pill main" href="${a.link}" target="_blank" rel="noopener">♪ 配信で聴く</a>
+      <a class="pill" href="https://youtu.be/${a.full_mv}" target="_blank" rel="noopener">▶ 全曲ノンストップMV</a>
+      <a class="pill" href="${CHANNEL}" target="_blank" rel="noopener">YouTube チャンネル</a>
+    </div>
+    <footer>© 2026 PITCH ／ 楽曲・ボーカルはAI(Musicful)、作詞はPITCH×Claudeで制作しています。動画はYouTubeから再生しています。</footer>`);
+  const g = $("#grid");
+  a.tracks.forEach((t,i)=>{
+    const c = document.createElement("a");
+    c.className="card"; c.href=`#${a.slug}/${t.slug}`; c.style.setProperty("--c",t.color);
+    c.innerHTML = `<div class="th" style="background-image:url(https://i.ytimg.com/vi/${t.yt}/mqdefault.jpg)"></div>
+      <div class="meta"><div class="no">${String(i+1).padStart(2,"0")}</div><div class="tt"></div><div class="hk"></div></div>`;
+    c.querySelector(".tt").textContent=t.title; c.querySelector(".hk").textContent=t.hook;
+    g.appendChild(c);
+  });
+}
+
+// ---------- 歌う画面 ----------
+let player=null, apiReady=false, album=null, ti=-1, rows=[], cur=-2, userScrollUntil=0, pendingAutoplay=false;
+let offset = store.get("offset",0), fs = store.get("fs",0);
+
+function applyFs(){ document.documentElement.style.setProperty("--lyric",`calc(clamp(22px,5.4vw,34px) * ${(1+fs*0.12).toFixed(2)})`); }
+function applyOff(){ $("#offVal").textContent=(offset>0?"+":offset<0?"−":"±")+Math.abs(offset).toFixed(1); }
+
+function openTrack(a, i, autoplay){
+  album=a; ti=i; const t=a.tracks[i];
+  document.body.classList.add("singing");
+  document.documentElement.style.setProperty("--accent",t.color);
+  document.title=`${t.title} — PITCH Sing Along`;
+  $("#nowTitle").textContent=t.title; $("#nowHook").textContent=t.hook;
+  buildLyrics(t);
+  pendingAutoplay=!!autoplay;
+  if(player && player.loadVideoById){ autoplay ? player.loadVideoById(t.yt) : player.cueVideoById(t.yt); }
+  else ensurePlayer();
+}
+
+function buildLyrics(t){
+  const box=$("#lyrics"); box.innerHTML=""; rows=[]; cur=-2;
+  const L=t.lines;
+  L.forEach((l,k)=>{
+    const end = k+1<L.length ? L[k+1][0] : l[0]+6;
+    if(!l[1]){ if(k>0 && k<L.length-1){ const g=document.createElement("div"); g.className="gap"; g.setAttribute("aria-hidden","true"); box.appendChild(g);} return; }
+    const d=document.createElement("div"); d.className="ln";
+    d.innerHTML='<span class="cd"></span><span class="tx"></span>';
+    d.querySelector(".tx").textContent=l[1];
+    d.addEventListener("click",()=>{ if(player&&player.seekTo){ player.seekTo(Math.max(0,l[0]-0.6-offset),true); player.playVideo(); userScrollUntil=0; } });
+    box.appendChild(d);
+    rows.push({s:l[0], e:end, el:d});
+  });
+  const nx = album.tracks[ti+1];
+  const end=document.createElement("div"); end.className="end";
+  end.innerHTML = nx ? `おつかれさま！ 次は <a href="#${album.slug}/${nx.slug}"></a>` : `全${album.tracks.length}曲おつかれさま！ <a href="${album.link}" target="_blank" rel="noopener">配信でも聴いてね</a>`;
+  if(nx) end.querySelector("a").textContent=nx.title+" ›";
+  box.appendChild(end);
+  box.scrollTop=0;
+}
+
+function tick(){
+  requestAnimationFrame(tick);
+  if(!player || !player.getCurrentTime || !rows.length) return;
+  const t = player.getCurrentTime() + LEAD + offset;
+  // いまの行 = 始まっていて、まだ終わっていない行
+  let idx=-1, last=-1;
+  for(let k=0;k<rows.length;k++){ if(rows[k].s<=t){ last=k; if(t<rows[k].e) idx=k; } else break; }
+  const nextK = last+1 < rows.length ? last+1 : -1;
+  if(idx!==cur){
+    rows.forEach((r,k)=>{ r.el.classList.toggle("cur",k===idx); r.el.classList.toggle("past",k<=last && k!==idx); r.el.classList.toggle("next",k===nextK); if(k!==idx) r.el.style.removeProperty("--p"); });
+    cur=idx;
+    follow(idx>=0?idx:nextK);
+  }
+  if(idx>=0){ const r=rows[idx]; const p=Math.min(1,(t-r.s)/Math.max(0.6,(r.e-r.s)*0.92)); r.el.style.setProperty("--p",(p*100).toFixed(1)+"%"); }
+  // 間奏明けのカウント
+  rows.forEach(r=>r.el.classList.remove("soon"));
+  if(idx<0 && nextK>=0){ const left=rows[nextK].s-t; if(left>0 && left<=COUNT_IN){ const n=Math.ceil(left); const r=rows[nextK]; r.el.classList.add("soon"); r.el.querySelector(".cd").textContent="●".repeat(n); } }
+}
+
+function follow(k){
+  if(k<0 || Date.now()<userScrollUntil) return;
+  const box=$("#lyrics"), el=rows[k].el;
+  const target = el.offsetTop - box.clientHeight*0.36 + el.offsetHeight/2;
+  box.scrollTo({top:target, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+  $("#hint").classList.remove("show");
+}
+
+function ensurePlayer(){
+  if(!apiReady){ return; }
+  if(player) return;
+  const t=album.tracks[ti];
+  player = new YT.Player("player",{
+    videoId:t.yt,
+    playerVars:{playsinline:1, rel:0, modestbranding:1, autoplay: pendingAutoplay?1:0},
+    events:{
+      onReady:()=>{ if(pendingAutoplay) player.playVideo(); },
+      onStateChange:e=>{ if(e.data===YT.PlayerState.ENDED && ti+1<album.tracks.length){ location.hash=`#${album.slug}/${album.tracks[ti+1].slug}`; pendingNextAuto=true; } }
+    }
+  });
+}
+let pendingNextAuto=false;
+window.onYouTubeIframeAPIReady = ()=>{ apiReady=true; if(album) ensurePlayer(); };
+
+// 手でスクロールしたら少しのあいだ自動スクロールを止める
+["wheel","touchmove"].forEach(ev=>$("#lyrics").addEventListener(ev,()=>{ userScrollUntil=Date.now()+5000; $("#hint").classList.add("show"); },{passive:true}));
+$("#hint").addEventListener("click",()=>{ userScrollUntil=0; const k=cur>=0?cur:rows.findIndex(r=>r.el.classList.contains("next")); if(k>=0) follow(k); });
+
+$("#fsUp").onclick=()=>{ fs=Math.min(4,fs+1); store.set("fs",fs); applyFs(); };
+$("#fsDown").onclick=()=>{ fs=Math.max(-2,fs-1); store.set("fs",fs); applyFs(); };
+$("#offUp").onclick=()=>{ offset=Math.round((offset+0.1)*10)/10; store.set("offset",offset); applyOff(); cur=-2; };
+$("#offDown").onclick=()=>{ offset=Math.round((offset-0.1)*10)/10; store.set("offset",offset); applyOff(); cur=-2; };
+$("#prev").onclick=()=>{ if(ti>0) location.hash=`#${album.slug}/${album.tracks[ti-1].slug}`; };
+$("#next").onclick=()=>{ if(ti+1<album.tracks.length){ pendingNextAuto=true; location.hash=`#${album.slug}/${album.tracks[ti+1].slug}`; } };
+
+function route(){
+  const [as,ts]=location.hash.replace(/^#/,"").split("/");
+  const a=ALBUMS.find(x=>x.slug===as), i=a?a.tracks.findIndex(t=>t.slug===ts):-1;
+  if(a && i>=0){ const auto=pendingNextAuto; pendingNextAuto=false; openTrack(a,i,auto); }
+  else { document.body.classList.remove("singing"); document.title="PITCH Sing Along"; if(player&&player.pauseVideo) player.pauseVideo(); window.scrollTo(0,0); }
+}
+window.addEventListener("hashchange",route);
+document.addEventListener("keydown",e=>{ if(e.target.closest("input,textarea")||!document.body.classList.contains("singing")||!player||!player.getPlayerState) return;
+  if(e.code==="Space"){ e.preventDefault(); player.getPlayerState()===1?player.pauseVideo():player.playVideo(); } });
+
+renderHome(); applyFs(); applyOff(); route(); requestAnimationFrame(tick);
+</script>
+<script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
